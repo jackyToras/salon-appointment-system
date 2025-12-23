@@ -59,4 +59,18 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @PostMapping("/webhook")
+    public ResponseEntity<String> handleStripeWebhook(
+            @RequestBody String payload,
+            @RequestHeader("Stripe-Signature") String sigHeader) {
+
+        try {
+            paymentService.handleWebhook(payload, sigHeader);
+            return ResponseEntity.ok("Webhook handled successfully");
+        } catch (Exception e) {
+            System.out.println("Webhook error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Webhook error: " + e.getMessage());
+        }
+    }
 }

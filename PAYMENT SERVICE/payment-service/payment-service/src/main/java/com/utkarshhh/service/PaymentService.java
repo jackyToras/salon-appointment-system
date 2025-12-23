@@ -11,4 +11,5 @@ public interface PaymentService {
     PaymentOrder getPaymentOrderById(ObjectId id) throws Exception;
     PaymentOrder getPaymentOrderByPaymentId(String paymentId) throws Exception;
     Boolean proceedPayment(String paymentId, String paymentLinkId) throws Exception;
+    void handleWebhook(String payload, String sigHeader) throws Exception;
 }

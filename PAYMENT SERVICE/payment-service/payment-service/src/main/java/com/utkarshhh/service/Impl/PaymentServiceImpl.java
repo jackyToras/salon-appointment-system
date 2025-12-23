@@ -1,7 +1,13 @@
 package com.utkarshhh.service.Impl;
-
+import java.util.Optional;
 import com.stripe.Stripe;
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.Event;
+import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
+import com.stripe.net.ApiResource;
+import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.utkarshhh.domain.PaymentOrderStatus;
 import com.utkarshhh.dto.BookingDTO;
@@ -23,6 +29,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
+
+    @Value("${stripe.webhook.secret}")
+    private String webhookSecret;
 
     @Override
     public PaymentLinkResponse createOrder(UserDTO user, BookingDTO booking) throws Exception {
@@ -80,6 +89,64 @@ public class PaymentServiceImpl implements PaymentService {
         return true;
     }
 
+    @Override
+    public void handleWebhook(String payload, String sigHeader) throws Exception {
+        Event event;
+
+        try {
+            event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
+        } catch (SignatureVerificationException e) {
+            System.out.println("Webhook signature verification failed");
+            throw new Exception("Invalid signature");
+        }
+
+        System.out.println("Webhook received: " + event.getType());
+
+        if ("checkout.session.completed".equals(event.getType())) {
+            EventDataObjectDeserializer deserializer = event.getDataObjectDeserializer();
+
+            StripeObject stripeObject = null;
+            if (deserializer.getObject().isPresent()) {
+                stripeObject = deserializer.getObject().get();
+            } else {
+                Optional<String> rawJson = deserializer.getRawJson().describeConstable();
+                if (rawJson.isPresent()) {
+                    try {
+                        stripeObject = ApiResource.GSON.fromJson(rawJson.get(), Session.class);
+                    } catch (Exception e) {
+                        System.out.println("Failed to parse raw JSON into Session: " + e.getMessage());
+                    }
+                }
+            }
+
+            if (stripeObject instanceof Session session) {
+                if (session.getMetadata() != null) {
+                    String orderId = session.getMetadata().get("order_id");
+
+                    System.out.println("Payment completed for order: " + orderId);
+
+                    if (orderId != null && !orderId.isEmpty()) {
+                        PaymentOrder paymentOrder = paymentOrderRepository.findById(new ObjectId(orderId)).orElse(null);
+                        if (paymentOrder != null) {
+                            paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+                            paymentOrderRepository.save(paymentOrder);
+                            System.out.println("Payment status updated to SUCCESS for order: " + orderId);
+                        } else {
+                            System.out.println("Payment order not found: " + orderId);
+                        }
+                    } else {
+                        System.out.println("Order ID is null or empty in metadata");
+                    }
+                } else {
+                    System.out.println("Session metadata is null");
+                }
+            } else {
+                System.out.println("Stripe object is not a Session");
+            }
+        }
+    }
+
+
     private String createStripePaymentLink(UserDTO user, Long amount, ObjectId orderId) throws Exception {
         try {
             Stripe.apiKey = stripeSecretKey;
@@ -87,6 +154,7 @@ public class PaymentServiceImpl implements PaymentService {
             SessionCreateParams params = SessionCreateParams.builder()
                     .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                     .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .putMetadata("order_id", orderId.toHexString())
                     .setSuccessUrl("http://localhost:3000/payment/success?order_id=" + orderId.toHexString())
                     .setCancelUrl("http://localhost:3000/payment/cancel")
                     .addLineItem(SessionCreateParams.LineItem.builder()
