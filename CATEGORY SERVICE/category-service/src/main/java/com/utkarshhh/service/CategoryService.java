@@ -9,9 +9,9 @@ public interface CategoryService {
 
     Category saveCategory(Category category);
 
-    List<Category> getCategoriesBySalonId(ObjectId salonId);
+    List<Category> getCategoriesBySalonId(String salonId);
 
-    Category getCategoryById(ObjectId categoryId);
+    Category getCategoryById(String categoryId);
 
-    void deleteCategory(ObjectId categoryId, ObjectId salonId);
+    void deleteCategory(String categoryId, String salonId);
 }

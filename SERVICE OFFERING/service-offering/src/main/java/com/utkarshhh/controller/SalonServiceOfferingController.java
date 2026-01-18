@@ -26,7 +26,7 @@ public class SalonServiceOfferingController {
     ) {
 
         SalonDTO salonDTO = new SalonDTO();
-        salonDTO.setId(serviceDTO.getSalonId()); // ✅ FIX
+        salonDTO.setId(serviceDTO.getSalonId());
 
         CategoryDTO categoryDTO = new CategoryDTO();
         categoryDTO.setId(serviceDTO.getCategoryId());
@@ -44,7 +44,7 @@ public class SalonServiceOfferingController {
     ) throws Exception {
 
         ServiceOffering updated =
-                serviceOfferingService.updateService(id, serviceOffering);
+                serviceOfferingService.updateService(String.valueOf(id), serviceOffering);
 
         return ResponseEntity.ok(Collections.singleton(updated));
     }

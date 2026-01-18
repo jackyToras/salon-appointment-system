@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Set;
 @Repository
-public interface ServiceOfferingRepository extends MongoRepository<ServiceOffering, ObjectId> {
-    Set<ServiceOffering> findBySalonId(ObjectId salonId);
+public interface ServiceOfferingRepository extends MongoRepository<ServiceOffering, String > {
+    Set<ServiceOffering> findBySalonId(String  salonId);
 }

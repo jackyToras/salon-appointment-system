@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 
-public interface SalonRepository extends MongoRepository<Salon, ObjectId> {
+public interface SalonRepository extends MongoRepository<Salon, String> {
 
     Salon findByOwnerId(Long ownerId);
 

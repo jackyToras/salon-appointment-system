@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class SalonDTO {
 
-    private ObjectId id;
+    private String  id;
 
     private String name;
 

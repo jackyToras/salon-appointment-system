@@ -2,39 +2,33 @@ package com.utkarshhh.model;
 
 import com.mongodb.lang.NonNull;
 import jakarta.websocket.OnClose;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "offering")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ServiceOffering {
 
     @Id
-    private ObjectId id;
+    private String id;
 
-    @NonNull
     private String name;
 
-    @NonNull
     private String description;
 
-    @NonNull
-    private int price;
+    private int price;      // ✅ primitive int (not nullable)
 
-    @NonNull
-    private int duration;
+    private int duration;   // ✅ primitive int (not nullable)
 
-    @NonNull
-    private ObjectId salonId;
+    private String salonId;
 
-    @NonNull
-    private ObjectId categoryId;
+    private String categoryId;
 
     private String image;
-
-    public ServiceOffering() {
-
-    }
 }

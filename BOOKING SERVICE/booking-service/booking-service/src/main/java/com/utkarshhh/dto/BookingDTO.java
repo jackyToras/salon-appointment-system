@@ -11,15 +11,15 @@ import java.util.Set;
 
 @Data
 public class BookingDTO {
-    @Id
-    private ObjectId id;
-    private ObjectId salonId;
+
+    private String id;
+    private String salonId;
     private String customerId;
     private String customerName;
     private String customerEmail;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private Set<ObjectId> serviceIds;
+    private Set<String> serviceIds;
     private BookingStatus status = BookingStatus.PENDING;
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
     private String paymentMethod;

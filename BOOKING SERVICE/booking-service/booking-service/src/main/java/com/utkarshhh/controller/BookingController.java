@@ -53,6 +53,55 @@ public class BookingController {
     @Autowired
     private NotificationPublisher notificationPublisher;
 
+    @PostMapping("/admin/migrate-all-bookings")
+    public ResponseEntity<?> migrateAllBookings() {
+        try {
+            List<Booking> allBookings = bookingRepository.findAll();
+            int fixed = 0;
+
+            for (Booking booking : allBookings) {
+                if (booking.getCustomerName() == null || booking.getCustomerEmail() == null) {
+                    try {
+                        UserDTO user = userClient.getUser(booking.getCustomerId());
+                        booking.setCustomerName(user.getFullName());
+                        booking.setCustomerEmail(user.getEmail());
+                        bookingRepository.save(booking);
+                        fixed++;
+                    } catch (Exception e) {
+                        System.err.println("Failed to fix booking: " + booking.getId());
+                    }
+                }
+            }
+
+            return ResponseEntity.ok("Fixed " + fixed + " bookings");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+    @PutMapping("/{bookingId}/cancel")
+    public ResponseEntity<?> cancelBooking(@PathVariable String bookingId) {
+        try {
+            // Get current booking
+            Booking booking = bookingService.getBookingById(bookingId);
+
+            // Validate booking can be cancelled
+            if (booking.getStatus() == BookingStatus.CANCELLED) {
+                return ResponseEntity.badRequest().body("Booking is already cancelled");
+            }
+
+            if (booking.getStatus() == BookingStatus.COMPLETED) {
+                return ResponseEntity.badRequest().body("Cannot cancel a completed booking");
+            }
+
+            // Update to CANCELLED status
+            Booking updated = bookingService.updateBooking(bookingId, BookingStatus.CANCELLED);
+
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error cancelling booking: " + e.getMessage());
+        }
+    }
     @PostMapping
     public ResponseEntity<?> createBooking(
             @RequestBody BookingRequest bookingRequest,
@@ -74,7 +123,7 @@ public class BookingController {
             SalonDTO salonDTO = salonService.getSalonById(bookingRequest.getSalonId());
 
             Set<ServiceDTO> serviceDTOSet = new HashSet<>();
-            for (ObjectId serviceId : bookingRequest.getServiceIds()) {
+            for (String serviceId : bookingRequest.getServiceIds()) {
                 ServiceDTO serviceDTO = serviceOfferingService.getServiceById(serviceId);
                 serviceDTOSet.add(serviceDTO);
             }
@@ -119,7 +168,7 @@ public class BookingController {
     @GetMapping("/customer")
     public ResponseEntity<?> getBookingsByCustomer(@RequestParam String customerId) {
         try {
-            List<Booking> bookings = bookingService.getBookingsByCustomer(new ObjectId(customerId));
+            List<Booking> bookings = bookingService.getBookingsByCustomer(customerId);
 
             List<BookingDTO> bookingDTOs = bookings.stream()
                     .map(BookingMapper::toDTO)
@@ -134,7 +183,7 @@ public class BookingController {
     @GetMapping("/salon")
     public ResponseEntity<?> getBookingsBySalon(@RequestParam String salonId) {
         try {
-            List<Booking> bookings = bookingService.getBookingBySalon(new ObjectId(salonId));
+            List<Booking> bookings = bookingService.getBookingBySalon(salonId);
 
             List<BookingDTO> bookingDTOs = bookings.stream()
                     .map(BookingMapper::toDTO)
@@ -149,7 +198,7 @@ public class BookingController {
     @GetMapping("/report")
     public ResponseEntity<?> getSalonReport(@RequestParam String salonId) {
         try {
-            SalonReport report = bookingService.getSalonReport(new ObjectId(salonId));
+            SalonReport report = bookingService.getSalonReport(salonId);
             return ResponseEntity.ok(report);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -161,7 +210,7 @@ public class BookingController {
             @PathVariable String salonId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
         try {
-            List<Booking> bookings = bookingService.getBookingByDate(date, new ObjectId(salonId));
+            List<Booking> bookings = bookingService.getBookingByDate(date,salonId);
 
             List<BookingDTO> bookingDTOs = bookings.stream()
                     .map(BookingMapper::toDTO)
@@ -176,7 +225,7 @@ public class BookingController {
     @GetMapping("/{bookingId}")
     public ResponseEntity<?> getBookingById(@PathVariable String bookingId) {
         try {
-            Booking booking = bookingService.getBookingById(new ObjectId(bookingId));
+            Booking booking = bookingService.getBookingById(bookingId);
 
             return ResponseEntity.ok(BookingMapper.toDTO(booking));
         } catch (Exception e) {
@@ -189,7 +238,7 @@ public class BookingController {
             @PathVariable String bookingId,
             @RequestParam BookingStatus status) {
         try {
-            Booking updatedBooking = bookingService.updateBooking(new ObjectId(bookingId), status);
+            Booking updatedBooking = bookingService.updateBooking(bookingId, status);
 
             return ResponseEntity.ok(BookingMapper.toDTO(updatedBooking));
         } catch (Exception e) {
@@ -202,7 +251,7 @@ public class BookingController {
             @PathVariable String bookingId,
             @RequestParam PaymentStatus paymentStatus) {
         try {
-            Booking booking = bookingService.getBookingById(new ObjectId(bookingId));
+            Booking booking = bookingService.getBookingById(bookingId);
             booking.setPaymentStatus(paymentStatus);
 
             if (paymentStatus == PaymentStatus.PAID) {

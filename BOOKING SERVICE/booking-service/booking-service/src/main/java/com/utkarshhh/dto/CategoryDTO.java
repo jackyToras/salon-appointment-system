@@ -5,7 +5,7 @@ import org.bson.types.ObjectId;
 
 @Data
 public class CategoryDTO {
-    private ObjectId id;
+    private String id;
     private String name;
     private String image;
 }

@@ -17,8 +17,8 @@ public interface ServiceClient {
 
     @GetMapping("/api/service-offering/salon/{salonId}")
     Set<ServiceDTO> getServicesBySalon(@PathVariable("salonId") String salonId,
-                                       @RequestParam(required = false) ObjectId categoryId);
+                                       @RequestParam(required = false) String categoryId);
 
     @GetMapping("/api/service-offering/ids")
-    List<ServiceDTO> getServicesByIds(@RequestParam Set<ObjectId> ids);
+    List<ServiceDTO> getServicesByIds(@RequestParam Set<String> ids);
 }

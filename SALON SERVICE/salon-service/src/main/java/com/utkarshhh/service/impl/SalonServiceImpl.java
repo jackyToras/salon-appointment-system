@@ -35,11 +35,12 @@ public class SalonServiceImpl implements SalonService {
     }
 
     @Override
-    public Salon updateSalon(SalonDTO salonDTO, UserDTO user, ObjectId salonId) {
+    public Salon updateSalon(SalonDTO salonDTO, UserDTO user, String salonId) {
 
-        Salon salon = salonRepository.findById(salonId)
+        ObjectId objectId = new ObjectId(salonId);
+
+        Salon salon = salonRepository.findById(String.valueOf(objectId))
                 .orElseThrow(() -> new RuntimeException("Salon not found"));
-
         // ❌ Disable auth logic for now
         // if (!Objects.equals(salon.getOwnerId(), user.getId())) {
         //     throw new RuntimeException("Unauthorized");
@@ -65,7 +66,7 @@ public class SalonServiceImpl implements SalonService {
     }
 
     @Override
-    public Salon getSalonById(ObjectId salonId) throws Exception {
+    public Salon getSalonById(String salonId) throws Exception {
         return salonRepository.findById(salonId)
                 .orElseThrow(() -> new Exception("Salon not exist"));
     }

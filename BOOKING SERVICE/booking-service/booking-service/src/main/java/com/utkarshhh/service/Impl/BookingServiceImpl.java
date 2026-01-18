@@ -5,6 +5,7 @@ import com.utkarshhh.client.ServiceClient;
 import com.utkarshhh.client.UserClient;
 import com.utkarshhh.domain.BookingStatus;
 import com.utkarshhh.domain.PaymentStatus;
+import com.utkarshhh.dto.BookingDTO;
 import com.utkarshhh.dto.SalonDTO;
 import com.utkarshhh.dto.ServiceDTO;
 import com.utkarshhh.dto.UserDTO;
@@ -57,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
                 .mapToInt(ServiceDTO::getPrice)
                 .sum();
 
-        Set<ObjectId> idList = serviceDTOSet.stream()
+        Set<String> idList = serviceDTOSet.stream()
                 .map(ServiceDTO::getId)
                 .collect(Collectors.toSet());
 
@@ -70,10 +71,20 @@ public class BookingServiceImpl implements BookingService {
         booking.setEndTime(bookingEndTime);
         booking.setTotalPrice(totalPrice);
         booking.setCustomerId(userDTO.getId());
+        booking.setCustomerName(userDTO.getFullName());  // or getName() depending on your UserDTO
+        booking.setCustomerEmail(userDTO.getEmail());
 
         return bookingRepository.save(booking);
     }
 
+    @Override
+    public Booking updateBooking(String bookingId, BookingStatus status) throws Exception {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new Exception("Booking not found with id: " + bookingId));
+
+        booking.setStatus(status);
+        return bookingRepository.save(booking);
+    }
     public Boolean isTimeSlotAvailable(SalonDTO salonDTO,
                                        LocalDateTime bookingStartTime,
                                        LocalDateTime bookingEndTime) throws Exception {
@@ -115,17 +126,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getBookingsByCustomer(ObjectId customerId) {
+    public List<Booking> getBookingsByCustomer(String customerId) {  // ✅ Changed to String
         return bookingRepository.findByCustomerId(customerId);
     }
 
     @Override
-    public List<Booking> getBookingBySalon(ObjectId salonId) {
+    public List<Booking> getBookingBySalon(String salonId) {  // ✅ Changed to String
         return bookingRepository.findBySalonId(salonId);
     }
 
     @Override
-    public Booking getBookingById(ObjectId id) throws Exception {
+    public Booking getBookingById(String id) throws Exception {  // ✅ Changed to String
         Booking booking = bookingRepository.findById(id).orElse(null);
         if (booking == null) {
             throw new Exception("Booking not found");
@@ -134,14 +145,37 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Booking updateBooking(ObjectId bookingId, BookingStatus status) throws Exception {
-        Booking booking = getBookingById(bookingId);
-        booking.setStatus(status);
-        return bookingRepository.save(booking);
+    public BookingDTO updateBookingStatus(String bookingId, BookingStatus bookingStatus) {
+        try {
+            Booking booking = bookingRepository.findById(String.valueOf(new ObjectId(bookingId)))
+                    .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+            booking.setStatus(bookingStatus);
+            Booking updated = bookingRepository.save(booking);
+
+            // Create DTO manually here
+            BookingDTO dto = new BookingDTO();
+            dto.setId(updated.getId().toString());
+            dto.setSalonId(updated.getSalonId());
+            dto.setCustomerId(updated.getCustomerId());
+            dto.setCustomerName(updated.getCustomerName());
+            dto.setCustomerEmail(updated.getCustomerEmail());
+            dto.setServiceIds(updated.getServiceIds());
+            dto.setStartTime(updated.getStartTime());
+            dto.setEndTime(updated.getEndTime());
+            dto.setStatus(updated.getStatus());
+            dto.setPaymentStatus(updated.getPaymentStatus());
+            dto.setPaymentMethod(updated.getPaymentMethod());
+            dto.setTotalPrice(updated.getTotalPrice());
+
+            return dto;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update booking status: " + e.getMessage());
+        }
     }
 
     @Override
-    public List<Booking> getBookingByDate(LocalDateTime date, ObjectId salonId) {
+    public List<Booking> getBookingByDate(LocalDateTime date, String salonId) {
         List<Booking> allBooking = getBookingBySalon(salonId);
 
         if (date == null) {
@@ -159,7 +193,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public SalonReport getSalonReport(ObjectId salonId) {
+    public SalonReport getSalonReport(String salonId) {
         List<Booking> bookings = getBookingBySalon(salonId);
 
         int totalEarnings = bookings.stream()

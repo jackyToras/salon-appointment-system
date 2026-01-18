@@ -10,9 +10,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Category {
 
     @Id
-    private ObjectId id;
-
-    private ObjectId salonId;
+    private String id;
+    private String salonId;
     private String name;
     private String image;
 }

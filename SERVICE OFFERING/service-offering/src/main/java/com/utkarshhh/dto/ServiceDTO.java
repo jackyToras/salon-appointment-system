@@ -9,7 +9,7 @@ import org.springframework.data.annotation.Id;
 @Data
 public class ServiceDTO {
     @Id
-    private ObjectId id;
+    private String  id;
 
 
     private String name;
@@ -24,10 +24,10 @@ public class ServiceDTO {
     private int duration;
 
 
-    private ObjectId salonId;
+    private String  salonId;
 
 
-    private ObjectId categoryId;
+    private String  categoryId;
 
     private String image;
 }

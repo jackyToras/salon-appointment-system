@@ -20,18 +20,18 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<Category> getCategoriesBySalonId(ObjectId salonId) {
+    public List<Category> getCategoriesBySalonId(String salonId) {
         return categoryRepository.findBySalonId(salonId);
     }
 
     @Override
-    public Category getCategoryById(ObjectId categoryId) {
+    public Category getCategoryById(String categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
     }
 
     @Override
-    public void deleteCategory(ObjectId categoryId, ObjectId salonId) {
+    public void deleteCategory(String categoryId, String salonId) {
         Category category = categoryRepository
                 .findByIdAndSalonId(categoryId, salonId)
                 .orElseThrow(() -> new RuntimeException("Category not found or unauthorized"));

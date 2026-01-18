@@ -21,7 +21,7 @@ public class CategoryController {
             @PathVariable String salonId
     ) {
         return ResponseEntity.ok(
-                categoryService.getCategoriesBySalonId(new ObjectId(salonId))
+                categoryService.getCategoriesBySalonId(salonId)
         );
     }
 
@@ -31,7 +31,7 @@ public class CategoryController {
             @PathVariable String categoryId
     ) {
         return ResponseEntity.ok(
-                categoryService.getCategoryById(new ObjectId(categoryId))
+                categoryService.getCategoryById(categoryId)
         );
     }
 }

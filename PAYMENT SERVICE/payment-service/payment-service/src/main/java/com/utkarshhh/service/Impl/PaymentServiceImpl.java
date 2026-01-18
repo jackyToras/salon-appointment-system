@@ -50,8 +50,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         PaymentOrder order = new PaymentOrder();
         order.setAmount(amount);
-        order.setBookingId(booking.getId());
-        order.setSalonId(booking.getSalonId());
+        order.setBookingId(String.valueOf(new ObjectId(booking.getId())));  // ✅ Convert String to ObjectId
+        order.setSalonId(String.valueOf(new ObjectId(booking.getSalonId())));  // ✅ Convert String to ObjectId
         order.setUserId(booking.getCustomerId());
 
         PaymentOrder savedOrder = paymentOrderRepository.save(order);
@@ -177,6 +177,8 @@ public class PaymentServiceImpl implements PaymentService {
                 System.err.println("Customer data is null in booking!");
                 return;
             }
+            updateBookingPaymentStatus(paymentOrder.getBookingId().toString());
+
 
             PaymentNotificationDTO notification = new PaymentNotificationDTO(
                     paymentOrder.getId().toString(),
@@ -197,6 +199,15 @@ public class PaymentServiceImpl implements PaymentService {
             e.printStackTrace();
         }
     }
+    private void updateBookingPaymentStatus(String bookingId) {
+        try {
+            System.out.println("Updating booking payment status...");
+            bookingClient.updatePaymentStatus(bookingId, "PAID");
+            System.out.println("Booking payment status updated to PAID");
+        } catch (Exception e) {
+            System.err.println("Failed to update booking status: " + e.getMessage());
+        }
+    }
 
     private String createStripePaymentLink(UserDTO user, Long amount, ObjectId orderId) throws Exception {
         try {
@@ -206,8 +217,8 @@ public class PaymentServiceImpl implements PaymentService {
                     .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .putMetadata("order_id", orderId.toHexString())
-                    .setSuccessUrl("http://localhost:3000/payment/success?order_id=" + orderId.toHexString())
-                    .setCancelUrl("http://localhost:3000/payment/cancel")
+                    .setSuccessUrl("http://localhost:5173/payment/success?order_id=" + orderId.toHexString())
+                    .setCancelUrl("http://localhost:5173/payment/cancel")
                     .addLineItem(SessionCreateParams.LineItem.builder()
                             .setQuantity(1L)
                             .setPriceData(SessionCreateParams.LineItem.PriceData.builder()

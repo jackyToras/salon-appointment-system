@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SalonDTO {
-    private ObjectId id;
+    private String id;
     private String name;
     private List<String> images;      // ✅ This was missing!
     private String address;

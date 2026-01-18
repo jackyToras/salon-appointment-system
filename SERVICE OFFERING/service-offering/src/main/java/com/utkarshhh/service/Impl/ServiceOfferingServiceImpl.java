@@ -4,21 +4,25 @@ import com.utkarshhh.dto.CategoryDTO;
 import com.utkarshhh.dto.SalonDTO;
 import com.utkarshhh.dto.ServiceDTO;
 import com.utkarshhh.model.ServiceOffering;
-import com.utkarshhh.repository.ServiceOfferingRepository;
 import com.utkarshhh.service.ServiceOfferingService;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.ObjectId;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ServiceOfferingServiceImpl implements ServiceOfferingService {
 
-    private final ServiceOfferingRepository serviceOfferingRepository;
+    private final MongoTemplate mongoTemplate;
 
     @Override
     public ServiceOffering createService(
@@ -26,63 +30,104 @@ public class ServiceOfferingServiceImpl implements ServiceOfferingService {
             ServiceDTO serviceDTO,
             CategoryDTO categoryDTO
     ) {
-        ServiceOffering serviceOffering = new ServiceOffering();
-        serviceOffering.setName(serviceDTO.getName());
-        serviceOffering.setDescription(serviceDTO.getDescription());
-        serviceOffering.setPrice(serviceDTO.getPrice());
-        serviceOffering.setDuration(serviceDTO.getDuration());
-        serviceOffering.setImage(serviceDTO.getImage());
-        serviceOffering.setSalonId(salonDTO.getId());
-        serviceOffering.setCategoryId(categoryDTO.getId());
+        log.info("🔄 Creating service: {} for salon: {}", serviceDTO.getName(), salonDTO.getName());
 
-        return serviceOfferingRepository.save(serviceOffering);
+        ServiceOffering service = new ServiceOffering();
+        service.setName(serviceDTO.getName());
+        service.setDescription(serviceDTO.getDescription());
+        service.setPrice(serviceDTO.getPrice());
+        service.setDuration(serviceDTO.getDuration());
+        service.setImage(serviceDTO.getImage());
+
+        // Store IDs as strings
+        service.setSalonId(salonDTO.getId());
+        service.setCategoryId(categoryDTO.getId());
+
+        ServiceOffering saved = mongoTemplate.save(service);
+        log.info("✅ Service created with ID: {}", saved.getId());
+
+        return saved;
     }
 
     @Override
     public ServiceOffering updateService(
-            ObjectId serviceId,
-            ServiceOffering input
+            String serviceId,
+            ServiceOffering serviceOffering
     ) throws Exception {
+        log.info("🔄 Updating service: {}", serviceId);
 
-        ServiceOffering existing =
-                serviceOfferingRepository.findById(serviceId)
-                        .orElseThrow(() ->
-                                new Exception("Service not exist with id " + serviceId));
+        ServiceOffering existing = getServiceById(serviceId);
 
-        existing.setName(input.getName());
-        existing.setDescription(input.getDescription());
-        existing.setPrice(input.getPrice());
-        existing.setDuration(input.getDuration());
-        existing.setImage(input.getImage());
+        if (serviceOffering.getName() != null) {
+            existing.setName(serviceOffering.getName());
+        }
+        if (serviceOffering.getDescription() != null) {
+            existing.setDescription(serviceOffering.getDescription());
+        }
+        if (serviceOffering.getPrice() != 0) {
+            existing.setPrice(serviceOffering.getPrice());  // ✅ This works with Integer
+        }
+        if (serviceOffering.getDuration() != 0) {
+            existing.setDuration(serviceOffering.getDuration());  // ✅ This works with Integer
+        }
+        if (serviceOffering.getImage() != null) {
+            existing.setImage(serviceOffering.getImage());
+        }
 
-        return serviceOfferingRepository.save(existing);
+        ServiceOffering updated = mongoTemplate.save(existing);
+        log.info("✅ Service updated: {}", updated.getId());
+
+        return updated;
     }
 
     @Override
     public Set<ServiceOffering> getAllServiceBySalon(
-            ObjectId salonId,
-            ObjectId categoryId
+            String salonId,
+            String categoryId
     ) {
-        Set<ServiceOffering> services =
-                serviceOfferingRepository.findBySalonId(salonId);
+        log.info("🔍 Fetching services for salon: {}", salonId);
 
-        if (categoryId != null) {
-            services = services.stream()
-                    .filter(s -> categoryId.equals(s.getCategoryId()))
-                    .collect(Collectors.toSet());
+        Query query = new Query();
+        query.addCriteria(Criteria.where("salonId").is(salonId));
+
+        if (categoryId != null && !categoryId.equals("null") && !categoryId.isEmpty()) {
+            query.addCriteria(Criteria.where("categoryId").is(categoryId));
         }
+
+        List<ServiceOffering> services = mongoTemplate.find(query, ServiceOffering.class);
+
+        log.info("✅ Found {} services for salon {}", services.size(), salonId);
+
+        return new HashSet<>(services);
+    }
+
+    @Override
+    public List<ServiceOffering> getServicesByIds(Set<String> ids) {
+        log.info("🔍 Fetching services by IDs: {}", ids);
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").in(ids));
+
+        List<ServiceOffering> services = mongoTemplate.find(query, ServiceOffering.class);
+
+        log.info("✅ Found {} services", services.size());
+
         return services;
     }
 
     @Override
-    public List<ServiceOffering> getServicesByIds(Set<ObjectId> ids) {
-        return serviceOfferingRepository.findAllById(ids);
-    }
+    public ServiceOffering getServiceById(String id) throws Exception {
+        log.info("🔍 Fetching service by ID: {}", id);
 
-    @Override
-    public ServiceOffering getServiceById(ObjectId id) throws Exception {
-        return serviceOfferingRepository.findById(id)
-                .orElseThrow(() ->
-                        new Exception("Service not exist with id " + id));
+        ServiceOffering service = mongoTemplate.findById(id, ServiceOffering.class);
+
+        if (service == null) {
+            log.error("❌ Service not found: {}", id);
+            throw new Exception("Service not found with ID: " + id);
+        }
+
+        log.info("✅ Found service: {}", service.getName());
+
+        return service;
     }
 }

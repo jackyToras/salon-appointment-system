@@ -31,7 +31,7 @@ public class SalonController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<SalonDTO> updateSalon(
-            @PathVariable ObjectId id,
+            @PathVariable String id,
             @RequestBody SalonDTO salonDTO) throws Exception {
 
         UserDTO userDTO = new UserDTO();
@@ -42,7 +42,7 @@ public class SalonController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SalonDTO> getSalonById(@PathVariable ObjectId id) throws Exception {
+    public ResponseEntity<SalonDTO> getSalonById(@PathVariable String id) throws Exception {
         Salon salon = salonService.getSalonById(id);
         return ResponseEntity.ok(SalonMapper.mapToDTO(salon));
     }

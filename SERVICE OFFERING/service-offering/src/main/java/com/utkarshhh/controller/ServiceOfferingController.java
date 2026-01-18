@@ -19,11 +19,11 @@ public class ServiceOfferingController {
 
     @GetMapping("/salon/{salonId}")
     public ResponseEntity<Set<ServiceOffering>> getServicesBySalonId(
-            @PathVariable ObjectId salonId,
+            @PathVariable String salonId,
             @RequestParam(required = false) ObjectId categoryId
     ) {
         return ResponseEntity.ok(
-                serviceOfferingService.getAllServiceBySalon(salonId, categoryId)
+                serviceOfferingService.getAllServiceBySalon(salonId, String.valueOf(categoryId))
         );
     }
 
@@ -31,12 +31,12 @@ public class ServiceOfferingController {
     public ResponseEntity<ServiceOffering> getServiceById(
             @PathVariable ObjectId id
     ) throws Exception {
-        return ResponseEntity.ok(serviceOfferingService.getServiceById(id));
+        return ResponseEntity.ok(serviceOfferingService.getServiceById(String.valueOf(id)));
     }
 
     @GetMapping("/ids")
     public ResponseEntity<List<ServiceOffering>> getServicesByIds(
-            @RequestParam Set<ObjectId> ids
+            @RequestParam Set<String> ids
     ) {
         return ResponseEntity.ok(serviceOfferingService.getServicesByIds(ids));
     }

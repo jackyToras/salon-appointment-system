@@ -11,11 +11,11 @@ public interface SalonService {
 
     Salon createSalon(SalonDTO salonDTO, UserDTO userDTO);
 
-    Salon updateSalon(SalonDTO salonDTO, UserDTO userDTO, ObjectId salonId) throws Exception;
+    Salon updateSalon(SalonDTO salonDTO, UserDTO userDTO, String salonId) throws Exception;
 
     List<Salon> getAllSalons();
 
-    Salon getSalonById(ObjectId salonId) throws Exception;
+    Salon getSalonById(String salonId) throws Exception;
 
     Salon getSalonByOwnerId(Long ownerId);
 

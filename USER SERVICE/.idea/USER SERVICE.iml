@@ -18,5 +18,17 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.18.2" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.18.2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-web:6.2.1" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-context:6.2.1" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-beans:6.2.1" level="project" />
+    <orderEntry type="library" name="Maven: org.keycloak:keycloak-admin-client:23.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.keycloak:keycloak-core:23.0.0" level="project" />
+    <orderEntry type="library" name="Maven: javax.ws.rs:javax.ws.rs-api:2.1.1" level="project" />
+    <orderEntry type="library" name="Maven: jakarta.ws.rs:jakarta.ws.rs-api:3.0.0" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-core:6.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-oauth2-resource-server:6.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-oauth2-jose:6.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-config:6.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-web:6.4.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.tomcat.embed:tomcat-embed-core:10.1.34" level="project" />
   </component>
 </module>

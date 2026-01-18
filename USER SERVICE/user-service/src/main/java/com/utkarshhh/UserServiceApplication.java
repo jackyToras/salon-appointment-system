@@ -2,13 +2,24 @@ package com.utkarshhh;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Arrays;
 
 @SpringBootApplication
 public class UserServiceApplication {
 
 	public static void main(String[] args) {
+		ApplicationContext ctx = SpringApplication.run(UserServiceApplication.class, args);
 
-		SpringApplication.run(UserServiceApplication.class, args);
+		// Print all registered controllers
+		System.out.println("========================================");
+		System.out.println("🔍 REGISTERED CONTROLLERS:");
+		Arrays.stream(ctx.getBeanDefinitionNames())
+				.filter(name -> name.toLowerCase().contains("controller"))
+				.forEach(name -> System.out.println("   ✅ " + name));
+		System.out.println("========================================");
 	}
-
 }

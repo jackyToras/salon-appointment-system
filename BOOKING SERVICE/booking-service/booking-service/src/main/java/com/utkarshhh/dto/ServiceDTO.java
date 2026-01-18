@@ -9,12 +9,12 @@ import org.bson.types.ObjectId;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServiceDTO {
-    private ObjectId id;
+    private String id;
     private String name;
     private String description;
     private int price;
     private int duration;
-    private ObjectId salonId;
-    private ObjectId categoryId;
+    private String salonId;
+    private String categoryId;
     private String image;
 }

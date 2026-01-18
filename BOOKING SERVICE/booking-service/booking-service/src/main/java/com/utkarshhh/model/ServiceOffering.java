@@ -8,13 +8,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Document(collection = "offering")
 public class ServiceOffering {
-    @Id
-    private ObjectId id;
+
+    private String id;
     private String name;
     private String description;
     private int price;
     private int duration;
-    private ObjectId salonId;
-    private ObjectId categoryId;
+    private String salonId;
+    private String categoryId;
     private String image;
 }

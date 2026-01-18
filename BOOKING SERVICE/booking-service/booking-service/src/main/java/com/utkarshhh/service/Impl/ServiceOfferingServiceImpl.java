@@ -16,7 +16,7 @@ public class ServiceOfferingServiceImpl implements ServiceOfferingService {
     private final ServiceOfferingRepository serviceOfferingRepository;
 
     @Override
-    public ServiceDTO getServiceById(ObjectId serviceId) throws Exception {
+    public ServiceDTO getServiceById(String serviceId) throws Exception {
         ServiceOffering serviceOffering = serviceOfferingRepository.findById(serviceId)
                 .orElseThrow(() -> new Exception("Service not found with id: " + serviceId));
         return ServiceMapper.toDTO(serviceOffering);

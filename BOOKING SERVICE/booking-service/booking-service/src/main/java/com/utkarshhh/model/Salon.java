@@ -12,7 +12,7 @@ import java.util.List;
 @Document(collection = "salon")
 public class Salon {
     @Id
-    private ObjectId id;
+    private String id;
     private String name;
     private List<String> images;
     private String address;

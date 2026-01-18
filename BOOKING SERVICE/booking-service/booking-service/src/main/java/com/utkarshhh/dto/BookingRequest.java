@@ -8,7 +8,7 @@ import java.util.Set;
 public class BookingRequest {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private Set<ObjectId> serviceIds;
+    private Set<String> serviceIds;
     private String paymentMethod;
-    private ObjectId salonId;
+    private String salonId;
 }

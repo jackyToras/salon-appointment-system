@@ -9,12 +9,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Document(collection = "payment")
 public class PaymentOrder {
-    @Id
+
     private ObjectId id;
     private Long amount;
     private PaymentOrderStatus status = PaymentOrderStatus.PENDING;
     private String paymentLinkId;
     private String userId;
-    private ObjectId salonId;
-    private ObjectId bookingId;
+    private String salonId;
+    private String bookingId;
 }

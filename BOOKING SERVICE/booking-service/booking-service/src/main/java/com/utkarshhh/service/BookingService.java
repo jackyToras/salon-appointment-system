@@ -1,6 +1,7 @@
 package com.utkarshhh.service;
 
 import com.utkarshhh.domain.BookingStatus;
+import com.utkarshhh.dto.BookingDTO;
 import com.utkarshhh.dto.SalonDTO;
 import com.utkarshhh.dto.ServiceDTO;
 import com.utkarshhh.dto.UserDTO;
@@ -19,15 +20,18 @@ public interface BookingService {
                           SalonDTO salonDTO,
                           Set<ServiceDTO> serviceDTOSet) throws Exception;
 
-    List<Booking> getBookingsByCustomer(ObjectId customerId);
+    List<Booking> getBookingsByCustomer(String customerId);
 
-    List<Booking> getBookingBySalon(ObjectId salonId);
+    List<Booking> getBookingBySalon(String salonId);
 
-    Booking getBookingById(ObjectId id) throws Exception;
+    Booking getBookingById(String id) throws Exception;
 
-    Booking updateBooking(ObjectId bookingId, BookingStatus status) throws Exception;
+    Booking updateBooking(String bookingId, BookingStatus status) throws Exception;
 
-    List<Booking> getBookingByDate(LocalDateTime date, ObjectId salonId);
+    BookingDTO updateBookingStatus(String bookingId, BookingStatus bookingStatus);
 
-    SalonReport getSalonReport(ObjectId salonId);
+    List<Booking> getBookingByDate(LocalDateTime date, String salonId);
+
+    SalonReport getSalonReport(String salonId);
+
 }

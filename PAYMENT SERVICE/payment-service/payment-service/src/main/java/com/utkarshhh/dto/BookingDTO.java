@@ -12,12 +12,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookingDTO {
-    private ObjectId id;
+    private String id;
     private String customerId;
-    private ObjectId salonId;
+    private String salonId;
     private String customerName;
     private String customerEmail;
-    private List<ObjectId> serviceIds;
+    private List<String> serviceIds;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private int totalPrice;

@@ -16,7 +16,7 @@ public class SalonServiceImpl implements SalonService {
     private final SalonRepository salonRepository;
 
     @Override
-    public SalonDTO getSalonById(ObjectId salonId) throws Exception {
+    public SalonDTO getSalonById(String salonId) throws Exception {
         Salon salon = salonRepository.findById(salonId)
                 .orElseThrow(() -> new Exception("Salon not found with id: " + salonId));
         return SalonMapper.toDTO(salon);

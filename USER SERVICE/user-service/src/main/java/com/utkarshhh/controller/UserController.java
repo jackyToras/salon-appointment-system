@@ -3,6 +3,7 @@ package com.utkarshhh.controller;
 import com.utkarshhh.dto.UserDTO;
 import com.utkarshhh.modal.User;
 import com.utkarshhh.repository.UserRepository;
+import com.utkarshhh.service.UserSyncService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,27 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserSyncService userSyncService;
 
-    @GetMapping("/{id}")
+    // EXPLICIT PATH - This must come first
+    // Change /me to /current
+    @GetMapping(value = "/current")
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        try {
+            System.out.println("✅ /current endpoint called");
+            User user = userSyncService.syncUserFromKeycloak();
+            return ResponseEntity.ok(convertToDTO(user));
+        } catch (Exception e) {
+            System.err.println("❌ Error in /current endpoint: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    @GetMapping(value = "/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable String id) {
         try {
+            System.out.println("✅ /{id} endpoint called with id: " + id);
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 

@@ -19,7 +19,7 @@ public class SalonCategoryController {
             @PathVariable String salonId,
             @RequestBody Category category
     ) {
-        category.setSalonId(new ObjectId(salonId));
+        category.setSalonId(salonId);
         return ResponseEntity.ok(categoryService.saveCategory(category));
     }
 
@@ -29,9 +29,7 @@ public class SalonCategoryController {
             @PathVariable String categoryId
     ) {
         categoryService.deleteCategory(
-                new ObjectId(categoryId),
-                new ObjectId(salonId)
-        );
+                categoryId,salonId);
         return ResponseEntity.ok("Category deleted successfully");
     }
 }
