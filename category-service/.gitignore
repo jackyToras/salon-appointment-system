@@ -1,0 +1,6 @@
+src/
+.env
+.git
+*.md
+.idea/
+*.iml

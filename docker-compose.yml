@@ -1,9 +1,8 @@
+version: '3.8'
+
 services:
-  mongo:
-    image: mongo:6.0
-    container_name: mongodb
-    ports:
-      - "27017:27017"
+
+  # ── Infrastructure ──────────────────────────────────────
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -11,102 +10,173 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
-
-  eureka:
-    build: "D:/Springboot/orchestration/EUREKA SERVICE/netflix-eureka-server/netflix-eureka-server"
-    container_name: eureka
-    ports:
-      - "8761:8761"
-    env_file: .env
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
     container_name: keycloak
-    command: start-dev
+    command: start-dev --import-realm
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-    volumes:
-      - keycloak-data:/opt/keycloak/data  # Added dash here
+      KC_HOSTNAME_URL: http://localhost:8180
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8180
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_PROXY: edge
     ports:
       - "8180:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 && echo -e 'GET / HTTP/1.0\r\n\r\n' >&3 && cat <&3 | grep -q 'HTTP' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  # ── Service Discovery ────────────────────────────────────
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8761/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  # ── Application Services ─────────────────────────────────
 
   user-service:
-    build: "D:/Springboot/orchestration/USER SERVICE/user-service"
+    build: ./user-service
+    container_name: user-service
     ports:
       - "1000:1000"
     env_file: .env
+    extra_hosts:
+      - "localhost:host-gateway"
     depends_on:
-      - mongo
-      - eureka
-      - keycloak
+      eureka-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    restart: on-failure
+
 
   salon-service:
-    build: "D:/Springboot/orchestration/SALON SERVICE/salon-service"
+    build: ./salon-service
+    container_name: salon-service
     ports:
       - "3000:3000"
     env_file: .env
     depends_on:
-      - mongo
-      - eureka
+      eureka-server:
+        condition: service_healthy
+    restart: on-failure
 
   category-service:
-    build: "D:/Springboot/orchestration/CATEGORY SERVICE/category-service"
+    build: ./category-service
+    container_name: category-service
     ports:
       - "4000:4000"
     env_file: .env
     depends_on:
-      - mongo
-      - eureka
+      eureka-server:
+        condition: service_healthy
+    restart: on-failure
 
   service-offering:
-    build: "D:/Springboot/orchestration/SERVICE OFFERING/service-offering"
+    build: ./service-offering
+    container_name: service-offering
     ports:
       - "2000:2000"
     env_file: .env
     depends_on:
-      - mongo
-      - eureka
-
-  payment-service:
-    build: "D:/Springboot/orchestration/PAYMENT SERVICE/payment-service/payment-service"
-    ports:
-      - "6000:6000"
-    env_file: .env
-    depends_on:
-      - mongo
-      - rabbitmq
-      - eureka
+      eureka-server:
+        condition: service_healthy
+    restart: on-failure
 
   booking-service:
-    build: "D:/Springboot/orchestration/BOOKING SERVICE/booking-service/booking-service"
+    build: ./booking-service
+    container_name: booking-service
     ports:
       - "5000:5000"
     env_file: .env
     depends_on:
-      - mongo
-      - rabbitmq
-      - eureka
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
 
-  notification-service:
-    build: "D:/Springboot/orchestration/NOTIFICATION SERVICE/notification-service/notification-service"
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
     ports:
-      - "7001:7000"
+      - "6000:6000"
     env_file: .env
     depends_on:
-      - mongo
-      - rabbitmq
-      - eureka
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "7000:7000"
+    env_file: .env
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: on-failure
+
+  # ── Gateway (starts last) ────────────────────────────────
 
   gateway-service:
-    build: "D:/Springboot/orchestration/GATEWAY SERVICE/gateway-service/gateway-service"
+    build: ./gateway-service
+    container_name: gateway-service
     ports:
       - "8862:8862"
     env_file: .env
+    extra_hosts:
+      - "localhost:host-gateway"
     depends_on:
-      - eureka
-      - keycloak
+      eureka-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    restart: on-failure
 
-# Volume definition at the TOP LEVEL (same indentation as 'services')
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - gateway-service
+    restart: on-failure
+
+ 
+# ── Volumes ──────────────────────────────────────────────
+
 volumes:
-  keycloak-data:
+  keycloak_data:
