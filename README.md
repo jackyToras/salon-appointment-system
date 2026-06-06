@@ -338,12 +338,6 @@ Import realm configuration through Keycloak Admin Console. See Configuration sec
 4. Push to branch: `git push origin feature/your-feature`
 5. Submit a pull request
 
-## Team
-
-- Utkarsh Shaning (Lead Developer)
-- Vashu Pal (Backend Developer)
-- Kanishk Yadav (Full Stack Developer)
-
 ## License
 
 This project is licensed under the MIT License. See LICENSE file for details.
@@ -352,7 +346,6 @@ This project is licensed under the MIT License. See LICENSE file for details.
 
 For issues, questions, or suggestions:
 - GitHub Issues: https://github.com/jackyToras/salon-booking-realm/issues
-- Email: utkarshshaning@example.com
 
 ## Performance
 
