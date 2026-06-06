@@ -1,7 +1,5 @@
 # Salon Booking Realm
 
-A microservices-based online salon booking platform for college students at Jaypee University of Information Technology.
-
 ## Overview
 
 Salon Booking Realm is a comprehensive web application that enables students to book salon services online. The system features real-time availability checking, secure payment processing via Stripe, and automated email notifications.
